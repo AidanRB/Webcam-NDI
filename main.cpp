@@ -21,12 +21,14 @@ int main(int argc, char* argv[])
 	NDIlib_send_instance_t pNDI_send = NDIlib_send_create();
 	if (!pNDI_send) return 0;
 
-	// We are going to create a 1920x1080 interlaced frame at 29.97Hz.
+	// We are going to create a 1920x1080 interlaced frame at 60.00Hz.
 	NDIlib_video_frame_v2_t NDI_video_frame;
 	NDI_video_frame.xres = 1920;
 	NDI_video_frame.yres = 1080;
 	NDI_video_frame.FourCC = NDIlib_FourCC_type_BGRX;
 	NDI_video_frame.p_data = (uint8_t*)malloc(NDI_video_frame.xres*NDI_video_frame.yres * 4);
+	NDI_video_frame.frame_rate_N = 60000;
+	NDI_video_frame.frame_rate_D = 1000;
 
 	// Run for one minute
 	using namespace std::chrono;
