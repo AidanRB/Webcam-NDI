@@ -12,8 +12,8 @@ include(CPack)
 # OpenCV
 set(OpenCV_DIR ${PROJECT_SOURCE_DIR}/opencv-build)
 find_package(OpenCV REQUIRED)
-include_directories(${PROJECT_SOURCE_DIR}/opencv-build/include)
-target_link_libraries(Webcam-NDI ${PROJECT_SOURCE_DIR}/opencv-build/lib/)
+include_directories(${OpenCV_INCLUDE_DIRS})
+target_link_libraries(Webcam-NDI ${OpenCV_LIBS})
 
 # NDI SDK
 include_directories(${PROJECT_SOURCE_DIR}/ndi_sdk/include)
