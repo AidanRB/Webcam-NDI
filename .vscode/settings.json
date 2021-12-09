@@ -1,3 +1,14 @@
 {
-    "cmake.configureOnOpen": true
+    "cmake.configureOnOpen": true,
+    "files.associations": {
+        "regex": "cpp",
+        "*.inc": "cpp",
+        "*.tcc": "cpp",
+        "complex": "cpp",
+        "fstream": "cpp",
+        "iomanip": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "chrono": "cpp"
+    }
 }

@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 	// type
 	NDI_video_frame.FourCC = NDIlib_FourCC_type_BGRA;
 	// allocate memory for the actual data
-	// NDI_video_frame.p_data = (uint8_t*)malloc(X * Y * 4);
+	NDI_video_frame.p_data = (uint8_t*)malloc(X * Y * 4);
 	// framerate (N/D)/s
 	NDI_video_frame.frame_rate_N = 60;
 	NDI_video_frame.frame_rate_D = 1;
@@ -49,37 +49,42 @@ int main(int argc, char* argv[])
 	cap.set(cv::CAP_PROP_FRAME_HEIGHT, Y);
     // open the default camera using default API
     cap.open(0);
-    // check if we succeeded
+    // check if we succeeded or if the camera is cap
     if (!cap.isOpened()) {
         std::cerr << "ERROR! Unable to open camera\n";
         return -1;
     }
 
 
-	// Run for one minute
+	// Run for five minutes
 	using namespace std::chrono;
-	for (const auto start = high_resolution_clock::now(); high_resolution_clock::now() - start < minutes(5);)
-	{	// Get the current time
+	const auto start = high_resolution_clock::now();
+	while (high_resolution_clock::now() - start < minutes(5)) {
+
+		// Get the current time
 		const auto start_send = high_resolution_clock::now();
 
-		// Send 200 frames
-		for (int idx = 200; idx; idx--)
-		{	// Fill in the buffer. It is likely that you would do something much smarter than this.
-			// memset((void*)NDI_video_frame.p_data, (idx & 1) ? 255 : 0, NDI_video_frame.xres*NDI_video_frame.yres * 4);
-
-			// something much smarter than that^
+		// Send 60 frames
+		for (int idx = 60; idx; idx--)
+		{
+			// gets image from capture in frame
 			cap.read(frame);
-			NDI_video_frame.p_data = (uint8_t*)frame.data;
+			// change color from BGR to BGRA, NDI has transparency apparently
+			cv::cvtColor(frame, NDIframe, cv::COLOR_BGR2BGRA);
+
+			// set p_data to point to the data in NDIframe
+			NDI_video_frame.p_data = (uint8_t*)NDIframe.data;
+
 			// send the frame
 			NDIlib_send_send_video_v2(pNDI_send, &NDI_video_frame);
 
-			// show the opencv fram captured from the camera
-			cv::imshow("output", frame);
-			cv::waitKey(1);
+			// show the opencv frame captured from the camera
+			//cv::imshow("output", frame);
+			//cv::waitKey(1);
 		}
 
-		// Just display something helpful
-		std::cout << "200 frames sent, at " << 200.0 / duration_cast<duration<float>>(high_resolution_clock::now() - start_send).count() << "fps" << std::endl;
+		// output the FPS
+		std::cout << "60 frames sent, at " << 60.0 / duration_cast<duration<float>>(high_resolution_clock::now() - start_send).count() << "fps" << std::endl;
 	}
 
 	// Free the video frame
