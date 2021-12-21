@@ -18,16 +18,16 @@
 
 int main(int argc, char **argv)
 {
-	int X = 640;
-	int Y = 480;
+	int X = 1000000;
+	int Y = 1000000;
 	int FPS_N = 30;
 	int FPS_D = 1;
 	int CAM = 0;
-	char *NAME = "camera";
+	char* NAME = "camera";
 
 	// parsing arguments
 	int window_flag = 0;
-	int verbose_flag = 1;
+	int verbose_flag = 0;
 	int c;
 	while(true) {
 		static struct option long_options[] = {
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 		/* getopt_long stores the option index here. */
 		int option_index = 0;
 
-		c = getopt_long(argc, argv, "x:y:f:d:n:",
+		c = getopt_long(argc, argv, "x:y:f:d:n:c:",
 						long_options, &option_index);
 
 		/* Detect the end of the options. */
@@ -109,19 +109,6 @@ int main(int argc, char **argv)
 	if (!pNDI_send)
 		return -1;
 
-	// NDI frame initialization
-	NDIlib_video_frame_v2_t NDI_video_frame;
-	// resolution
-	NDI_video_frame.xres = X;
-	NDI_video_frame.yres = Y;
-	// type
-	NDI_video_frame.FourCC = NDIlib_FourCC_type_BGRA;
-	// allocate memory for the actual data
-	NDI_video_frame.p_data = (uint8_t *)malloc(X * Y * 4);
-	// framerate (N/D)/s
-	NDI_video_frame.frame_rate_N = FPS_N;
-	NDI_video_frame.frame_rate_D = FPS_D;
-
 	// OpenCV initialization
 	cv::Mat frame;
 	cv::Mat NDIframe;
@@ -138,6 +125,23 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	// get max resolution of camera (or custom set resolution)
+	X = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+	Y = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+
+	// NDI frame initialization
+	NDIlib_video_frame_v2_t NDI_video_frame;
+	// resolution
+	NDI_video_frame.xres = X;
+	NDI_video_frame.yres = Y;
+	// type
+	NDI_video_frame.FourCC = NDIlib_FourCC_type_BGRA;
+	// allocate memory for the actual data
+	NDI_video_frame.p_data = (uint8_t *)malloc(X * Y * 4);
+	// framerate (N/D)/s
+	NDI_video_frame.frame_rate_N = FPS_N;
+	NDI_video_frame.frame_rate_D = FPS_D;
+
 	using namespace std::chrono;
 	const auto start = high_resolution_clock::now();
 	while(true) {
@@ -149,6 +153,7 @@ int main(int argc, char **argv)
 		{
 			// gets image from capture in frame
 			cap.read(frame);
+
 			// change color from BGR to BGRA, NDI has transparency apparently
 			cv::cvtColor(frame, NDIframe, cv::COLOR_BGR2BGRA);
 
@@ -167,7 +172,9 @@ int main(int argc, char **argv)
 
 		// output the FPS
 		if(verbose_flag) {
-			std::cout << "60 frames sent, at " << 60.0 / duration_cast<duration<float>>(high_resolution_clock::now() - start_send).count() << "fps" << std::endl;
+			std::cout << "60 frames sent, at " << X << "x" << Y << " "
+			<< 60.0 / duration_cast<duration<float>>(high_resolution_clock::now() - start_send).count()
+			<< "fps" << std::endl;
 		}
 	}
 
